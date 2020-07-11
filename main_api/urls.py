@@ -16,7 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-# incluimos los url patterns de nuestra app
 urlpatterns = [
     path("", include("apps.covidtracker.urls"))
 ]
