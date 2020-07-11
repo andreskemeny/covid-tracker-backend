@@ -15,34 +15,26 @@ from django.views.decorators.cache import cache_page
 
 
 class StatViewSet(viewsets.ViewSet):
-    # usamos un action de un viewset para poder tener acceso al cache, definimos el tipo de accion y el url del endpoint
     @method_decorator(cache_page(43200))
     @action(methods=['GET'], detail=False, url_path='chile')
     def chile(self, request):
         try:
-            # llama a la api
             res = requests.get(
                 "https://chile-coronapi.herokuapp.com/api/v3/historical/nation")
 
-            # nos devuelve json, lo tenemos que procesar y convertir en un diccionario que python puede leer.
             processed_res = json.loads(res.text)
 
-            # definimos las variables que nuestra api va a devolvernos
             casos, fechas, muertes = [], [], []
             for x in processed_res:
                 fechas.append(x)
                 casos.append(processed_res[x]['confirmed'])
                 muertes.append(processed_res[x]['deaths'])
 
-            # acceder al ultimo elemento de la respuesta de la api y extraer el numero que corresponde a "confirmed_per_million"
             confirmed_per_million = processed_res[fechas[-1]
                                                   ]['confirmed_per_million']
-            # acceder al ultimo elemento de la respuesta de la api y extraer el numero de casos hasta ese punto
             total_cases = casos[-1]
-            # calcular el fatality rate que corresponde al numero de muertes dividido en el numero de casos totales y eso multiplicado por 100
             fatality_rate = str((muertes[-1]/total_cases)*100)[:3]
 
-            # la api nos devuelve las variables que asignamos mas arriba con status 200 (exito)
             return Response({
                 "casos": casos[-61:],
                 "fechas": fechas[-61:],
@@ -52,7 +44,6 @@ class StatViewSet(viewsets.ViewSet):
                 "fatality_rate": fatality_rate
             }, status=status.HTTP_200_OK)
 
-        # en caso de toparse una excepcion nos devuelve el error y status 400 (bad request)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
